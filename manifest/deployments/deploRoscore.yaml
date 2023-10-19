@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: roscore-deployment
+  labels:
+    app: roscore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: roscore
+  template:
+    metadata:
+      labels:
+        app: roscore
+    spec:
+      containers:
+        - name: roscore
+          image: ros:noetic-ros-core-focal
+          resources:
+          tty: true
+          args:
+            - roscore
+          env:
+            - name: ROS_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          ports:
+            - containerPort: 11311
+              protocol: TCP
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: roscore
+  labels:
+    app: roscore
+spec:
+  ports:
+    - port: 11311
+      protocol: TCP
+  selector:
+    app: roscore

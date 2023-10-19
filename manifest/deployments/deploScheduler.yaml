@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scheduler-deployment
+  labels:
+    app: scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scheduler
+  template:
+    metadata:
+      labels:
+        app: scheduler
+    spec:
+      containers:
+        - name: scheduler-container
+          image: achilleas2942/cnmpc-scheduler:latest
+          resources:
+          command: ["/bin/bash", "-c"]
+          args:
+            - >-
+              source /root/catkin_ws/devel/setup.bash &&
+              export ROS_MASTER_URI=http://192.168.137.196:11311/ &&
+              export ROS_IP=$(ip -4 route get 8.8.8.8 | awk '{print $7; exit}') &&
+              python3 /root/catkin_ws/src/cnmpc_scheduler/src/scheduler_separated_tunnel.py
+          env:
+            - name: ROS_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: ROS_MASTER_URI
+              value: "http://roscore:11311"
+          volumeMounts:
+            - name: kubeconfig-volume
+              mountPath: /home/ubuntu/.kube/config
+              readOnly: true
+              subPath: config
+      volumes:
+        - name: kubeconfig-volume
+          configMap:
+            name: kubeconfig

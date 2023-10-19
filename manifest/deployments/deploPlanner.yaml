@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: planner-deployment
+  labels:
+    app: planner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: planner
+  template:
+    metadata:
+      labels:
+        app: planner
+    spec:
+      containers:
+        - name: planner-container
+          image: achilleas2942/cnmpc-planner:latest
+          resources:
+          command: ["/bin/bash", "-c"]
+          args: 
+            - >-
+              source /root/catkin_ws/devel/setup.bash &&
+              export ROS_MASTER_URI=http://192.168.137.196:11311/ &&
+              export ROS_IP=$(ip -4 route get 8.8.8.8 | awk '{print $7; exit}') &&
+              python3 /root/catkin_ws/src/cnmpc_planner/src/planner.py
+          env:
+            - name: ROS_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: ROS_MASTER_URI
+              value: "http://roscore:11311"
