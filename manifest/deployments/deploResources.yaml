@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resources-deployment
+  labels:
+    app: resources
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resources
+  template:
+    metadata:
+      labels:
+        app: resources
+    spec:
+      imagePullSecrets:
+        - name: ghcr-credentials #  create secret before apply
+      containers:
+        - name: resources-container
+          image: ghcr.io/achilleas2942/cnmpc-resources:latest
+          resources:
+          command: ["/bin/bash", "-c", "./root/catkin_ws/src/cnmpc_resource_allocation/src/run_resources.sh"]
+          env:
+            - name: ROS_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: ROS_MASTER_URI
+              value: "http://roscore:11311"
+
