@@ -14,21 +14,17 @@ spec:
       labels:
         app: planner
     spec:
+      imagePullSecrets:
+        - name: ghcr-credentials #  create secret before apply
       containers:
         - name: planner-container
-          image: achilleas2942/cnmpc-planner:latest
+          image: ghcr.io/achilleas2942/cnmpc-planner:latest
           resources:
-          command: ["/bin/bash", "-c"]
-          args: 
-            - >-
-              source /root/catkin_ws/devel/setup.bash &&
-              export ROS_MASTER_URI=http://192.168.137.196:11311/ &&
-              export ROS_IP=$(ip -4 route get 8.8.8.8 | awk '{print $7; exit}') &&
-              python3 /root/catkin_ws/src/cnmpc_planner/src/planner.py
+          command: ["/bin/bash", "-c", "./root/catkin_ws/src/cnmpc_planner/src/run_planner.sh"]
           env:
             - name: ROS_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
             - name: ROS_MASTER_URI
-              value: "http://roscore:11311"
+              value: "http://roscore:11311/"
